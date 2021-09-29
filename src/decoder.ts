@@ -1,5 +1,48 @@
 import * as Result from './result';
-import isEqual from "lodash/isEqual"
+// import isEqual from "lodash/isEqual"
+
+function isEqual(a: any, b: any) {
+  if (a === b) {
+    return true;
+  }
+  if (a === null && b === null) {
+    return true;
+  }
+  if (typeof (a) !== typeof (b)) {
+    return false;
+  }
+  if (typeof (a) === 'object') {
+    // Array
+    if (Array.isArray(a)) {
+      if (!Array.isArray(b)) {
+        return false;
+      }
+      if (a.length !== b.length) {
+        return false;
+      }
+      for (let i = 0; i < a.length; i++) {
+        if (!isEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    // Hash table
+    const keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length) {
+      return false;
+    }
+    for (let i = 0; i < keys.length; i++) {
+      if (!b.hasOwnProperty(keys[i])) {
+        return false;
+      }
+      if (!isEqual(a[keys[i]], b[keys[i]])) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
 
 /**
  * Information describing how json data failed to match a decoder.
