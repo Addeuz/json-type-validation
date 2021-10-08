@@ -1,5 +1,4 @@
 import * as Result from './result';
-// import isEqual from "lodash/isEqual"
 
 function isEqual(a: any, b: any) {
   if (a === b) {
@@ -8,12 +7,15 @@ function isEqual(a: any, b: any) {
   if (a === null && b === null) {
     return true;
   }
-  if (typeof (a) !== typeof (b)) {
+  if (typeof a !== typeof b) {
     return false;
   }
-  if (typeof (a) === 'object') {
+  if (typeof a === 'object') {
     // Array
     if (Array.isArray(a)) {
+      if ((a === null && b !== null) || (a !== null && b === null)) {
+        return false;
+      }
       if (!Array.isArray(b)) {
         return false;
       }
@@ -184,11 +186,10 @@ export class Decoder<A> {
    * Decoder primitive that validates strings, and fails on all other input.
    */
   static string(): Decoder<string> {
-    return new Decoder<string>(
-      (json: unknown) =>
-        typeof json === 'string'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a string', json)})
+    return new Decoder<string>((json: unknown) =>
+      typeof json === 'string'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a string', json)})
     );
   }
 
@@ -196,11 +197,10 @@ export class Decoder<A> {
    * Decoder primitive that validates numbers, and fails on all other input.
    */
   static number(): Decoder<number> {
-    return new Decoder<number>(
-      (json: unknown) =>
-        typeof json === 'number'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a number', json)})
+    return new Decoder<number>((json: unknown) =>
+      typeof json === 'number'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a number', json)})
     );
   }
 
@@ -208,11 +208,10 @@ export class Decoder<A> {
    * Decoder primitive that validates booleans, and fails on all other input.
    */
   static boolean(): Decoder<boolean> {
-    return new Decoder<boolean>(
-      (json: unknown) =>
-        typeof json === 'boolean'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a boolean', json)})
+    return new Decoder<boolean>((json: unknown) =>
+      typeof json === 'boolean'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a boolean', json)})
     );
   }
 
@@ -274,14 +273,15 @@ export class Decoder<A> {
    */
   static constant<T extends string | number | boolean | []>(value: T): Decoder<T>;
   static constant<T extends string | number | boolean, U extends [T, ...T[]]>(value: U): Decoder<U>;
-  static constant<T extends string | number | boolean, U extends Record<string, T>>(value: U): Decoder<U>;
+  static constant<T extends string | number | boolean, U extends Record<string, T>>(
+    value: U
+  ): Decoder<U>;
   static constant<T>(value: T): Decoder<T>;
   static constant(value: any) {
-    return new Decoder(
-      (json: unknown) =>
-        isEqual(json, value)
-          ? Result.ok(value)
-          : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
+    return new Decoder((json: unknown) =>
+      isEqual(json, value)
+        ? Result.ok(value)
+        : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
     );
   }
 
@@ -412,9 +412,7 @@ export class Decoder<A> {
       if (isJsonArray(json)) {
         if (json.length !== decoders.length) {
           return Result.err({
-            message: `expected a tuple of length ${decoders.length}, got one of length ${
-              json.length
-            }`
+            message: `expected a tuple of length ${decoders.length}, got one of length ${json.length}`
           });
         }
         const result = [];
@@ -481,8 +479,8 @@ export class Decoder<A> {
    * ```
    */
   static optional = <A>(decoder: Decoder<A>): Decoder<undefined | A> =>
-    new Decoder<undefined | A>(
-      (json: unknown) => (json === undefined ? Result.ok(undefined) : decoder.decode(json))
+    new Decoder<undefined | A>((json: unknown) =>
+      json === undefined ? Result.ok(undefined) : decoder.decode(json)
     );
 
   /**
